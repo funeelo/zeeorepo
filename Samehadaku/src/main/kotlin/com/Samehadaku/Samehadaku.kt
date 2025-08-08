@@ -63,7 +63,31 @@ class Samehadaku : MainAPI() {
         val description = document.selectFirst("div.entry-content.entry-content-single")?.text()?.trim()
         val tvtag = TvType.Anime
         val genre = document.select("div.genre-info").select("a").map { it.text() }
-    }
+        return {
+            val episodes = mutableListOf<Episode>()
+            document.select("div.lstepsiode.listeps").amap { info -> 
+                info.select("ul li div.epsleft span.lchx a").forEach { it ->
+                    val name = it.select("a").text().trim()
+                    val href = it.select("a").attr("href") ?: ""
+                    val Rawepisode = it.select("a").text().substringAfter("Episode").trim().toIntOrNull()
+                    episode.add(
+                        newEpisode(href)
+                        {
+                            this.episode=Rawepisode
+                            this.name=name
+                        }
+                    )
+                }
+            }
+
+            newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+                this.posterUrl = poster
+                this.plot = description
+                this.tags = genre
+            }
+
+        }
+    } 
 
     override suspend fun loadLinks(
         data: String,
