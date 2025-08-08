@@ -18,13 +18,13 @@ cloudstream {
      * */
     status = 1 // will be 3 if unspecified
     tvTypes = listOf(
-        "AsianDrama",
-        "TvSeries",
-        "Movie",
+        "AnimeMovie",
+        "Anime",
+        "OVA",
     )
 
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=tv7.lk21.am.in&sz=%size%"
+    iconUrl = "https://www.google.com/s2/favicons?domain=tv1.samehadaku.how&sz=%size%"
 
     isCrossPlatform = true
 }
