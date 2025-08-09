@@ -9,7 +9,7 @@ import org.jsoup.nodes.Element
 
 class Samehadaku : MainAPI() {
     
-    override var mainUrl = ""
+    override var mainUrl = "https://v1.samehadaku.how"
     
     override var name = "Samehadaku"
     override var hasMainPage = true
@@ -21,12 +21,15 @@ class Samehadaku : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
-        "anime-terbaru" to "Terbaru",
+        "daftar-anime-2/?title=&status=&type=&order=update" to "Terbaru",
+        "daftar-anime-2/?title=&status=&type=TV&order=popular" to "TV Populer",
+        "daftar-anime-2/?title=&status=&type=OVA&order=title" to "OVA",
+        "daftar-anime-2/?title=&status=&type=Movie&order=title" to "Movie",
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
-        val home = document.select("li").mapNotNull { it.toSearchResult() }
+        val document = app.get("$mainUrl/${request.data}", timeout = 50L).document
+        val home = document.select("div.animposx").mapNotNull { it.toSearchResult() }
 
         return newHomePageResponse(
             list = HomePageList(
@@ -34,14 +37,14 @@ class Samehadaku : MainAPI() {
                 list = home,
                 isHorizontalImages = false
             ),
-            hasNext = true
+            hasNext = false
         )
     }
 
     private fun Element.toSearchResult(): SearchResponse {
-        val title = this.select("div.thumb a").attr("title")
-        val href = fixUrl(this.select("div.thumb a").attr("href"))
-        val posterUrl = fixUrlNull(this.select("div.thumb a img").attr("src").toString())
+        val title = this.select("a").attr("title")
+        val href = fixUrl(this.select("a").attr("href"))
+        val posterUrl = fixUrlNull(this.select("a div.content-thumb img").attr("src").toString())
         // val quality = getQualityFromString(this.select("span.mli-quality").text())
         return newMovieSearchResponse(title, href, TvType.Anime) {
             this.posterUrl = posterUrl
@@ -51,20 +54,19 @@ class Samehadaku : MainAPI() {
 
     override suspend fun search(query: String): List<SearchResponse> {
             val document = app.get("${mainUrl}?s=$query", timeout = 50L).document
-            val results =document.select("div.animepostx").mapNotNull { it.toSearchResult() }
+            val results =document.select("div.animposx").mapNotNull { it.toSearchResult() }
         return results
     }
 
-    override suspend fun load (url: String): LoadResponse? {
+    override suspend fun load (url: String): LoadResponse {
         val document = app.get(url, timeout = 50L).document
         val title =
             document.selectFirst("h1.entry-title")?.text()?.trim().toString().substringBefore("Sub Indo")
         val poster = document.select("div.thumb img").attr("src").toString()
-        val description = document.selectFirst("div.entry-content.entry-content-single")?.text()?.trim()
-        val tvtag = if (url.contains("anime")) TvType.Anime else TvType.AnimeMovie
+        val description = document.selectFirst("div.entry-content.entry-content-single p")?.text()?.trim()
+        val tvtag = if (url.contains("anime")) TvType.TvSeries else TvType.AnimeMovie
         val genre = document.select("div.genre-info").select("a").map { it.text() }
-        return if (tvtag == TvType.Anime) {
-            val episodes = mutableListOf<Episode>()
+        val episodes = mutableListOf<Episode>()
             document.select("div.lstepsiode.listeps").amap { info -> 
                 info.select("ul li div.epsleft span.lchx a").forEach { it ->
                     val name = it.select("a").text().trim()
@@ -79,19 +81,10 @@ class Samehadaku : MainAPI() {
                     )
                 }
             }
-
-            newAnimeLoadResponse(title, url, TvType.TvSeries) {
-                this.posterUrl = poster
-                this.plot = description
-                this.tags = genre
-            }
-
-        } else {
-            newMovieLoadResponse(title, url, TvType.AnimeMovie, url) {
-                this.posterUrl = poster
-                this.plot = description
-                this.tags = genre
-            }
+        return newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+            this.posterUrl = poster
+            this.plot = description
+            this.tags = genre
         }
     } 
 
@@ -102,8 +95,8 @@ class Samehadaku : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val document = app.get(data).document
-        document.select("div.html5-video-container video").forEach {
-            val href = it.attr("src")
+        document.select("div#downloadb li").forEach {
+           val href = it.attr("href")
             loadExtractor(href,subtitleCallback, callback)
         }
         return true
