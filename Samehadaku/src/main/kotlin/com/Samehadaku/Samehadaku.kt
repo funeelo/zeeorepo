@@ -1,11 +1,16 @@
 package com.Samehadaku
 
+import com.lagradost.api.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
 import com.lagradost.cloudstream3.LoadResponse.Companion.addImdbId
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.*
+import com.lagradost.cloudstream3.utils.newExtractorLink
 import org.jsoup.nodes.Element
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class Samehadaku : MainAPI() {
     
@@ -69,14 +74,15 @@ class Samehadaku : MainAPI() {
         val episodes = mutableListOf<Episode>()
             document.select("div.lstepsiode.listeps").amap { info -> 
                 info.select("ul li div.epsleft span.lchx a").forEach { it ->
-                    val name = it.select("a").text().trim()
+                    // val name = it.select("a").text().substringAfter("Episode").trim()
                     val href = it.select("a").attr("href") ?: ""
                     val Rawepisode = it.select("a").text().substringAfter("Episode").trim().toIntOrNull()
                     episodes.add(
                         newEpisode(href)
                         {
+                            "Episode"
                             this.episode=Rawepisode
-                            this.name=name
+                            // this.name=name
                         }
                     )
                 }
@@ -95,10 +101,48 @@ class Samehadaku : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val document = app.get(data).document
-        document.select("div#downloadb li").forEach {
-           val href = it.attr("href")
-            loadExtractor(href,subtitleCallback, callback)
+        document.select("div#downloadb li").map { el ->
+            el.select("a").apmap {
+                loadFixedExtractor(
+                        fixUrl(it.attr("href")),
+                        el.select("strong").text(),
+                        "$mainUrl/",
+                        subtitleCallback,
+                        callback
+                )
+            }
         }
         return true
+    }
+
+    private suspend fun loadFixedExtractor(
+            url: String,
+            name: String,
+            referer: String? = null,
+            subtitleCallback: (SubtitleFile) -> Unit,
+            callback: (ExtractorLink) -> Unit
+    ) {
+        loadExtractor(url, referer, subtitleCallback) { link ->
+            CoroutineScope(Dispatchers.IO).launch {
+                callback.invoke(
+                    newExtractorLink(
+                            link.name,
+                            link.name,
+                            link.url,
+                    ) {
+                        this.quality = name.fixQuality()
+                    }
+                )
+            }
+        }
+    }
+
+    private fun String.fixQuality(): Int {
+        return when (this.uppercase()) {
+            "4K" -> Qualities.P2160.value
+            "FULLHD" -> Qualities.P1080.value
+            "MP4HD" -> Qualities.P720.value
+            else -> this.filter { it.isDigit() }.toIntOrNull() ?: Qualities.Unknown.value
+        }
     }
 }
