@@ -61,16 +61,16 @@ class Samehadaku : MainAPI() {
             document.selectFirst("h1.entry-title")?.text()?.trim().toString().substringBefore("Sub Indo")
         val poster = document.select("div.thumb img").attr("src").toString()
         val description = document.selectFirst("div.entry-content.entry-content-single")?.text()?.trim()
-        val tvtag = TvType.Anime
+        val tvtag = if (url.contains("anime")) TvType.Anime else TvType.AnimeMovie
         val genre = document.select("div.genre-info").select("a").map { it.text() }
-        return {
+        return if (tvtag == TvType.Anime) {
             val episodes = mutableListOf<Episode>()
             document.select("div.lstepsiode.listeps").amap { info -> 
                 info.select("ul li div.epsleft span.lchx a").forEach { it ->
                     val name = it.select("a").text().trim()
                     val href = it.select("a").attr("href") ?: ""
                     val Rawepisode = it.select("a").text().substringAfter("Episode").trim().toIntOrNull()
-                    episode.add(
+                    episodes.add(
                         newEpisode(href)
                         {
                             this.episode=Rawepisode
@@ -80,12 +80,18 @@ class Samehadaku : MainAPI() {
                 }
             }
 
-            newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+            newAnimeLoadResponse(title, url, TvType.TvSeries) {
                 this.posterUrl = poster
                 this.plot = description
                 this.tags = genre
             }
 
+        } else {
+            newMovieLoadResponse(title, url, TvType.AnimeMovie, url) {
+                this.posterUrl = poster
+                this.plot = description
+                this.tags = genre
+            }
         }
     } 
 
