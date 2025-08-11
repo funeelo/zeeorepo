@@ -1,5 +1,5 @@
 // use an integer for version numbers
-version = 3
+version = 1
 
 
 cloudstream {
@@ -24,7 +24,7 @@ cloudstream {
     )
 
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=tv1.samehadaku.how&sz=%size%"
+    iconUrl = "https://icons.duckduckgo.com/ip3/ww3.anoboy.app.ico"
 
     isCrossPlatform = true
 }
