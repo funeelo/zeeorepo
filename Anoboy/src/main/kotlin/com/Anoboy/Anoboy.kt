@@ -119,61 +119,11 @@ class Anoboy : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val document = app.get(data).document
-
-        document.select("div#fplay > div:nth-child(1) a").forEach { el ->
-            Log.d("Mohiro", fixUrl(el.attr("data-video")))
-            val firstDoc = app.get(fixUrl(el.attr("data-video"))).document
-            val iframeSrc = firstDoc.selectFirst("iframe")?.attr("src")
-            if (iframeSrc != null){
-                loadFixedExtractor(
-                    iframeSrc,
-                    iframeSrc,
-                    "",
-                    el.text().substringAfter("PC").trim(),
-                    subtitleCallback,
-                    callback
-                )
-            }
+        document.select("span.ud a.udl").forEach{ gf->
+            val url = gf.attr("href").toString()
+            loadExtractor(url, subtitleCallback, callback)
         }
         return true
     }
 
-    private suspend fun loadFixedExtractor(
-            url: String,
-            name: String,
-            referer: String? = null,
-            quality: String,
-            subtitleCallback: (SubtitleFile) -> Unit,
-            callback: (ExtractorLink) -> Unit
-    ) {
-        Log.d("Mohiro", "== TERPANGGIL ($url)")
-        var alreadySent = false
-        loadExtractor(url, referer, subtitleCallback) { link ->
-            if (!alreadySent) {
-                alreadySent = true
-                CoroutineScope(Dispatchers.IO).launch {
-                    callback.invoke(
-                        newExtractorLink(
-                                link.name,
-                                link.name,
-                                link.url,
-                        ) {
-                            this.quality = quality.fixQuality()
-                        }
-                    )
-                }
-            } else {
-                Log.d("Mohiro", "Link tambahan diabaikan: ${link.url}")
-            }
-        }
-    }
-
-    private fun String.fixQuality(): Int {
-        return when (this.uppercase()) {
-            "4K" -> Qualities.P2160.value
-            "FULLHD" -> Qualities.P1080.value
-            "MP4HD" -> Qualities.P720.value
-            else -> this.filter { it.isDigit() }.toIntOrNull() ?: Qualities.Unknown.value
-        }
-    }
 }

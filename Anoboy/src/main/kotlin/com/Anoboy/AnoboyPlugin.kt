@@ -7,5 +7,7 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 class AnoboyPlugin: BasePlugin() {
     override fun load() {
         registerMainAPI(Anoboy())
+        registerExtractorAPI(Gofile())
+        registerExtractorAPI(Mp4Upload())
     }
 }
