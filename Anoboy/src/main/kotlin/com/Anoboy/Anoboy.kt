@@ -52,10 +52,9 @@ class Anoboy : MainAPI() {
             .trim()
         val href = fixUrl(this.attr("href"))
         val posterUrl = fixUrlNull(this.select("div.amv amp-img").attr("src").toString())
-        // val quality = getQualityFromString(this.select("span.mli-quality").text())
+        
         return newAnimeSearchResponse(title, href, TvType.Anime) {
             this.posterUrl = posterUrl
-            // this.quality = quality
         }
     }
 
@@ -76,22 +75,49 @@ class Anoboy : MainAPI() {
         val description = document.select("div.column-three-fourth div:nth-child(4)")?.text()?.trim()
         val tags = document.select("div.unduhan td#genre").text().trim().split(", ")
 
-        val episodes = document.select ("div.singlelink ul li > a:matches(\\d+)").map {
-                val href = fixUrl(it.attr("href"))
-                val episode = it.text().substringAfter("Episode").substringBefore("Selesai").trim().toIntOrNull()
-                val season = if ("season-" in href) {
-                    href.substringAfter("season-").substringBefore("-").toIntOrNull() ?: 1
-                    } else {
-                        1
-                    }
-                
-                newEpisode(href)
-                {
+        val episodes: List<Episode> = if (document.select("div.singlelink a:matches(Streaming)").isNotEmpty()) {
+            Log.d("Mohiro", "[Streaming]")
+            val streamLink = fixUrl(
+                document.select("div.singlelink a")
+                    .firstOrNull { it.text().contains("Streaming", ignoreCase = true) }
+                    ?.attr("href")
+                    .toString()
+            )
+
+            val document = app.get(streamLink, timeout = 50L).document
+
+            document.select("div.satu a").map {
+                val href = fixUrl(it.attr("data-video"))
+                val episode = "\\d+".toRegex().find(it.text())?.value?.toIntOrNull()
+                val season = 1
+                newEpisode(href) {
                     this.name = "Episode $episode"
                     this.season = season
                     this.episode = episode
                 }
             }.reversed()
+        } else {
+            document.select("div.singlelink ul li > a:matches(\\d+)").map {
+                val href = fixUrl(it.attr("href"))
+                val episode = it.text()
+                    .substringAfter("Episode")
+                    .substringBefore("Selesai")
+                    .trim()
+                    .toIntOrNull()
+
+                val season = if ("season-" in href) {
+                    href.substringAfter("season-").substringBefore("-").toIntOrNull() ?: 1
+                } else {
+                    1
+                }
+
+                newEpisode(href) {
+                    this.name = "Episode $episode"
+                    this.season = season
+                    this.episode = episode
+                }
+            }.reversed()
+        }
 
         return if (tvType == TvType.Movie){
             val description = document.select("div.column-three-fourth div.unduhan")?.text()?.trim()
@@ -123,7 +149,21 @@ class Anoboy : MainAPI() {
             val url = gf.attr("href").toString()
             loadExtractor(url, subtitleCallback, callback)
         }
+        
+        val blogger = document.select("iframe").attr("src")
+        loadExtractor(blogger, subtitleCallback, callback)
+
+        // val vmiror = document.select("div.vmiror a")
+        document.select("div.vmiror a").forEach { vm->
+            val vmiror = fixUrl(vm.attr("data-video"))
+            val documentVmiror = app.get(vmiror).document
+            documentVmiror.select("a.link").forEach { li->
+                val url = li.attr("href").toString()
+                Log.d("Mohiro", url.toString())
+                loadExtractor(url, subtitleCallback, callback)
+            }
+        }
+
         return true
     }
-
 }

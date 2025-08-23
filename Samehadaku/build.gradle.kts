@@ -24,7 +24,7 @@ cloudstream {
     )
 
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=tv1.samehadaku.how&sz=%size%"
+    iconUrl = "https://icons.duckduckgo.com/ip3/samehadaku.how.ico"
 
     isCrossPlatform = true
 }

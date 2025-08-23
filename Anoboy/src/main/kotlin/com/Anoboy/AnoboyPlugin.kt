@@ -9,5 +9,6 @@ class AnoboyPlugin: BasePlugin() {
         registerMainAPI(Anoboy())
         registerExtractorAPI(Gofile())
         registerExtractorAPI(Mp4Upload())
+        registerExtractorAPI(YourUpload())
     }
 }
