@@ -97,11 +97,12 @@ class Anoboy : MainAPI() {
                 }
             }.reversed()
         } else {
-            document.select("div.singlelink ul li > a:matches(\\d+)").map {
+            document.select("div.singlelink ul li > a:matches(Episode\\s*\\d+)").map {
                 val href = fixUrl(it.attr("href"))
                 val episode = it.text()
                     .substringAfter("Episode")
                     .substringBefore("Selesai")
+                    .substringBefore("Tamat")
                     .trim()
                     .toIntOrNull()
 

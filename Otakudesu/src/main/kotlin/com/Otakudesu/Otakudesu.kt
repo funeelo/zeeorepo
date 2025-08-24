@@ -55,7 +55,7 @@ class Otakudesu : MainAPI() {
     }
 
     private fun Element.toSearchResult(): SearchResponse{
-        val title = this.select("h2 a").text().let { it.substring(0, listOf(it.indexOf("(Episode"), it.indexOf("Sub Indo"), it.indexOf("Subtitle")).filter { idx -> idx >= 0 }.minOrNull() ?: it.length) }.trim()
+        val title = this.select("h2 a").text().let { it.substring(0, listOf(it.indexOf("(Episode"), it.indexOf("Sub Indo"), it.indexOf("Subtitle"), it.indexOf("BD")).filter { idx -> idx >= 0 }.minOrNull() ?: it.length) }.trim()
         val href = fixUrl(this.select("h2 a").attr("href"))
         val posterUrl = fixUrlNull(this.select("img").attr("src").toString())
 
@@ -128,6 +128,11 @@ class Otakudesu : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val document = app.get(data).document
+
+        val desu = document.select("div.responsive-embed-stream iframe").attr("src")
+        Log.d("Mohiro", desu.toString())
+        loadExtractor(desu, subtitleCallback, callback)
+
         document.select("div.download ul li").map { el ->
             el.select("a").apmap {
                 

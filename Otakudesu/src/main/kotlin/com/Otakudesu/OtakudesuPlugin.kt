@@ -7,5 +7,6 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 class OtakudesuPlugin: BasePlugin() {
     override fun load() {
         registerMainAPI(Otakudesu())
+        registerExtractorAPI(DesuStream())
     }
 }

@@ -50,8 +50,8 @@ class Samehadaku : MainAPI() {
         val title = this.select("a").attr("title")
         val href = fixUrl(this.select("a").attr("href"))
         val posterUrl = fixUrlNull(this.select("a div.content-thumb img").attr("src").toString())
-        // val quality = getQualityFromString(this.select("span.mli-quality").text())
-        return newMovieSearchResponse(title, href, TvType.Anime) {
+        
+        return newAnimeSearchResponse(title, href, TvType.Anime) {
             this.posterUrl = posterUrl
             // this.quality = quality
         }
@@ -87,10 +87,11 @@ class Samehadaku : MainAPI() {
                     )
                 }
             }
-        return newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+        return newAnimeLoadResponse(title, url, TvType.Anime) {
             this.posterUrl = poster
             this.plot = description
             this.tags = genre
+            addEpisodes(DubStatus.Subbed, episodes)
         }
     } 
 
