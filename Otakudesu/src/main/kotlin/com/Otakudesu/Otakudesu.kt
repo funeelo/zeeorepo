@@ -47,10 +47,8 @@ class Otakudesu : MainAPI() {
         val title = this.select("a div.thumbz h2.jdlflm").text()
         val href = fixUrl(this.select("a").attr("href"))
         val posterUrl = fixUrlNull(this.select("a div.thumbz img").attr("src").toString())
-        // val quality = getQualityFromString(this.select("span.mli-quality").text())
         return newAnimeSearchResponse(title, href, TvType.Anime) {
             this.posterUrl = posterUrl
-            // this.quality = quality
         }
     }
 
@@ -97,22 +95,6 @@ class Otakudesu : MainAPI() {
                     }
         }
         
-        // val episodes = mutableListOf<Episode>()
-        //     document.select("div.lstepsiode.listeps").amap { info -> 
-        //         info.select("ul li div.epsleft span.lchx a").forEach { it ->
-        //             // val name = it.select("a").text().substringAfter("Episode").trim()
-        //             val href = it.select("a").attr("href") ?: ""
-        //             val Rawepisode = it.select("a").text().substringAfter("Episode").trim().toIntOrNull()
-        //             episodes.add(
-        //                 newEpisode(href)
-        //                 {
-        //                     "Episode"
-        //                     this.episode=Rawepisode
-        //                     // this.name=name
-        //                 }
-        //             )
-        //         }
-        //     }
         return newAnimeLoadResponse(title, url, TvType.Anime) {
             this.posterUrl = poster
             this.plot = description

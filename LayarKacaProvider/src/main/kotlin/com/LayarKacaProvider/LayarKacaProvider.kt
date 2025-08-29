@@ -59,7 +59,7 @@ class LayarKacaProvider : MainAPI() {
     private fun Element.toSearchResult(): SearchResponse? {
         val title = this.selectFirst("h3")?.ownText()?.trim() ?: return null
         val href = fixUrl(this.selectFirst("a")!!.attr("href"))
-        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
+        val posterUrl = fixUrlNull(this.select("img").attr("src"))
         val type =
             if (this.selectFirst("span.episode") == null) TvType.Movie else TvType.TvSeries
         return if (type == TvType.TvSeries) {
