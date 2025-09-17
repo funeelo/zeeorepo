@@ -8,7 +8,7 @@ import org.jsoup.nodes.Element
 
 class AnimeSail : MainAPI() {
     // kalau bisa pakai domain aslinya, jangan IP (lebih stabil)
-    override var mainUrl = "https://154.26.137.28"
+    override var mainUrl = "https://animesail.com"
 
     override var name = "AnimeSail"
     override var hasMainPage = true
