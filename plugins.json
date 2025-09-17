@@ -1,0 +1,24 @@
+[
+    {
+        "iconUrl": "https://icons.duckduckgo.com/ip3/154.26.137.28.ico",
+        "jarFileSize": 86776,
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/funeelo/zeeorepo",
+        "fileSize": 19337,
+        "status": 1,
+        "language": "id",
+        "authors": [
+            "Mohirufy"
+        ],
+        "tvTypes": [
+            "AnimeMovie",
+            "Anime",
+            "OVA"
+        ],
+        "version": 1,
+        "internalName": "AnimeSail",
+        "jarUrl": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/AnimeSail.jar",
+        "url": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/AnimeSail.cs3",
+        "name": "AnimeSail"
+    }
+]
