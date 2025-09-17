@@ -1,0 +1,156 @@
+[
+    {
+        "iconUrl": "https://icons.duckduckgo.com/ip3/154.26.137.28.ico",
+        "jarFileSize": 87061,
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/funeelo/zeeorepo",
+        "fileSize": 19395,
+        "status": 1,
+        "language": "id",
+        "authors": [
+            "Mohirufy"
+        ],
+        "tvTypes": [
+            "AnimeMovie",
+            "Anime",
+            "OVA"
+        ],
+        "version": 1,
+        "internalName": "AnimeSail",
+        "jarUrl": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/AnimeSail.jar",
+        "url": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/AnimeSail.cs3",
+        "name": "AnimeSail"
+    },
+    {
+        "iconUrl": "https://icons.duckduckgo.com/ip3/ww3.anoboy.app.ico",
+        "jarFileSize": 96079,
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/funeelo/zeeorepo",
+        "fileSize": 22854,
+        "status": 1,
+        "language": "id",
+        "authors": [
+            "Mohirufy"
+        ],
+        "tvTypes": [
+            "AnimeMovie",
+            "Anime",
+            "OVA"
+        ],
+        "version": 3,
+        "internalName": "Anoboy",
+        "jarUrl": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Anoboy.jar",
+        "url": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Anoboy.cs3",
+        "name": "Anoboy"
+    },
+    {
+        "iconUrl": "https://icons.duckduckgo.com/ip3/v8.kuramanime.tel.ico",
+        "jarFileSize": 78465,
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/funeelo/zeeorepo",
+        "fileSize": 19086,
+        "status": 1,
+        "language": "id",
+        "authors": [
+            "Mohirufy"
+        ],
+        "tvTypes": [
+            "AnimeMovie",
+            "Anime",
+            "OVA"
+        ],
+        "version": 1,
+        "internalName": "Kuramanime",
+        "jarUrl": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Kuramanime.jar",
+        "url": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Kuramanime.cs3",
+        "name": "Kuramanime"
+    },
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=tv7.lk21.am.in&sz=%size%",
+        "jarFileSize": 89768,
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/funeelo/zeeorepo",
+        "fileSize": 20451,
+        "status": 1,
+        "language": "id",
+        "authors": [
+            "Hexated, Phisher98"
+        ],
+        "tvTypes": [
+            "AsianDrama",
+            "TvSeries",
+            "Movie"
+        ],
+        "version": 5,
+        "internalName": "LayarKacaProvider",
+        "jarUrl": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/LayarKacaProvider.jar",
+        "url": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/LayarKacaProvider.cs3",
+        "name": "LayarKacaProvider"
+    },
+    {
+        "iconUrl": "https://icons.duckduckgo.com/ip3/otakudesu.best.ico",
+        "jarFileSize": 110628,
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/funeelo/zeeorepo",
+        "fileSize": 23324,
+        "status": 1,
+        "language": "id",
+        "authors": [
+            "Mohirufy"
+        ],
+        "tvTypes": [
+            "AnimeMovie",
+            "Anime",
+            "OVA"
+        ],
+        "version": 2,
+        "internalName": "Otakudesu",
+        "jarUrl": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Otakudesu.jar",
+        "url": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Otakudesu.cs3",
+        "name": "Otakudesu"
+    },
+    {
+        "iconUrl": "https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ww03.pencurimovie.bond&size=%size%",
+        "jarFileSize": 48911,
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/funeelo/zeeorepo",
+        "fileSize": 12656,
+        "status": 1,
+        "language": "id",
+        "authors": [
+            "Phisher98"
+        ],
+        "tvTypes": [
+            "Movie",
+            "TvSeries"
+        ],
+        "version": 4,
+        "internalName": "Pencurimovie",
+        "jarUrl": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Pencurimovie.jar",
+        "description": "Pencurimovie ",
+        "url": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Pencurimovie.cs3",
+        "name": "Pencurimovie"
+    },
+    {
+        "iconUrl": "https://icons.duckduckgo.com/ip3/samehadaku.how.ico",
+        "jarFileSize": 56476,
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/funeelo/zeeorepo",
+        "fileSize": 13382,
+        "status": 1,
+        "language": "id",
+        "authors": [
+            "Mohirufy"
+        ],
+        "tvTypes": [
+            "AnimeMovie",
+            "Anime",
+            "OVA"
+        ],
+        "version": 4,
+        "internalName": "Samehadaku",
+        "jarUrl": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Samehadaku.jar",
+        "url": "https://raw.githubusercontent.com/funeelo/zeeorepo/builds/Samehadaku.cs3",
+        "name": "Samehadaku"
+    }
+]
