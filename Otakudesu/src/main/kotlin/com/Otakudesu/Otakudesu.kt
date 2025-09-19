@@ -26,6 +26,7 @@ class Otakudesu : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
+        "complete-anime",
         "ongoing-anime" to "Terbaru",
     )
 
