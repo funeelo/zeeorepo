@@ -25,10 +25,11 @@ class Otakudesu : MainAPI() {
         TvType.OVA
     )
 
-    override val mainPage = mainPageOf(
-        "complete-anime",
-        "ongoing-anime" to "Terbaru",
-    )
+    override val mainPage =
+            mainPageOf(
+                    "$mainUrl/ongoing-anime/page/" to "Anime Ongoing",
+                    "$mainUrl/complete-anime/page/" to "Anime Completed"
+            )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
         val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
