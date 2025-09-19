@@ -32,18 +32,11 @@ class Otakudesu : MainAPI() {
             )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
-        val home = document.select("div.venz li").mapNotNull { it.toPageResult() }
-
-        return newHomePageResponse(
-            list = HomePageList(
-                name = request.name,
-                list = home,
-                isHorizontalImages = false
-            ),
-            hasNext = true
-        )
+        val document = app.get(request.data + page).document
+        val home = document.select("div.venz > ul > li").mapNotNull { it.toSearchResult() }
+        return newHomePageResponse(request.name, home)
     }
+    
 
     private fun Element.toPageResult(): SearchResponse {
         val title = this.select("a div.thumbz h2.jdlflm").text()
