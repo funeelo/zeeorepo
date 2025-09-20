@@ -35,11 +35,11 @@ class Otakudesu : MainAPI() {
 
             document.select("div.kglist321").forEach { dayDiv ->
                 val dayName = dayDiv.selectFirst("h2")?.text()?.trim() ?: return@forEach
-                val animeList = dayDiv.select("ul li a").map { el ->
+                val animeList = dayDiv.select("ul li a").apmap { el ->
                     val title = el.text().trim()
                     val href = fixUrl(el.attr("href"))
 
-                    
+                    // fetch detail page untuk ambil poster
                     val detailDoc = app.get(href, timeout = 50L).document
                     val poster = fixUrlNull(detailDoc.selectFirst("div.fotoanime img")?.attr("src"))
 
