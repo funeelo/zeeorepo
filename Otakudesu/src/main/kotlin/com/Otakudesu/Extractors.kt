@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class DesuStream : ExtractorApi() {
     override val name = "DesuStream"
-    override val mainUrl = "https://desustream.info"
+    override val mainUrl = "https://desustream.me"
     override val requiresReferer = false
 
     override suspend fun getUrl(
