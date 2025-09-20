@@ -26,6 +26,7 @@ class Otakudesu : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
+        "jadwal-rilis" to "jadwal rilis",
         "complete-anime" to "complete",
         "ongoing-anime" to "ongoing"
     )
