@@ -48,16 +48,14 @@ class Otakudesu : MainAPI() {
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        return if (request.data == "jadwal-rilis") {
+        if (request.data == "jadwal-rilis") {
             val document = app.get("$mainUrl/jadwal-rilis", timeout = 50L).document
             val home = mutableListOf<HomePageList>()
 
             document.select("div.kglist321").forEach { dayDiv ->
                 val dayName = dayDiv.selectFirst("h2")?.text()?.trim() ?: return@forEach
 
-                
                 val animeTitles = dayDiv.select("ul li a").map { it.text().trim() }
-
                 val animeListLinks = dayDiv.select("ul li a").map { fixUrl(it.attr("href")) }
 
                 val animeList = coroutineScope {
@@ -76,19 +74,19 @@ class Otakudesu : MainAPI() {
                 }
             }
 
-            HomePageResponse(home)
-        } else {
-            val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
-            val home = document.select("div.venz li").mapNotNull { it.toPageResult() }
-            newHomePageResponse(
-                list = HomePageList(
-                    name = request.name,
-                    list = home,
-                    isHorizontalImages = false
-                ),
-                hasNext = true
-            )
+            return HomePageResponse(home)
         }
+
+        val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
+        val home = document.select("div.venz li").mapNotNull { it.toPageResult() }
+        return newHomePageResponse(
+            list = HomePageList(
+                name = request.name,
+                list = home,
+                isHorizontalImages = false
+            ),
+            hasNext = true
+        )
     }
 
     private suspend fun fetchCoverFromAnilist(title: String): String? = withContext(Dispatchers.IO) {
