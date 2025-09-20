@@ -1,16 +1,12 @@
 package com.Otakudesu
 
-import com.lagradost.api.Log
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
-import com.lagradost.cloudstream3.LoadResponse.Companion.addImdbId
-import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
+import com.lagradost.cloudstream3.LoadResponse.Companion.addEpisodes
 import com.lagradost.cloudstream3.utils.*
-import com.lagradost.cloudstream3.utils.newExtractorLink
-import org.jsoup.nodes.Element
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jsoup.nodes.Element
 
 class Otakudesu : MainAPI() {
     override var mainUrl = "https://otakudesu.best"
@@ -30,7 +26,6 @@ class Otakudesu : MainAPI() {
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        
         if (request.data == "jadwal-rilis") {
             val doc = app.get("$mainUrl/jadwal-rilis", timeout = 50L).document
             val home = mutableListOf<HomePageList>()
@@ -50,7 +45,6 @@ class Otakudesu : MainAPI() {
             return HomePageResponse(home)
         }
 
-        
         val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
         val home = document.select("div.venz li").mapNotNull { it.toPageResult() }
         return newHomePageResponse(
@@ -73,42 +67,7 @@ class Otakudesu : MainAPI() {
         }
     }
 
-    
 }
-
-        callback: (ExtractorLink) -> Unit
-    ): Boolean {
-        val document = app.get(data).document
-
-        val desu = document.select("div.responsive-embed-stream iframe").attr("src")
-        Log.d("Mohiro", desu.toString())
-        loadExtractor(desu, subtitleCallback, callback)
-
-        document.select("div.download ul li").map { el ->
-            el.select("a").apmap {
-                
-                val res = app.get(it.attr("href"))
-                val finalUrl = res.url
-                Log.d("Mohiro", finalUrl.toString())
-                loadFixedExtractor(
-                        fixUrl(app.get(it.attr("href")).url),
-                        el.select("strong").text().substringAfter("Mp4"),
-                        "$mainUrl/",
-                        subtitleCallback,
-                        callback
-                )
-            }
-        }
-        return true
-    }
-
-    private suspend fun loadFixedExtractor(
-            url: String,
-            name: String,
-            referer: String? = null,
-            subtitleCallback: (SubtitleFile) -> Unit,
-            callback: (ExtractorLink) -> Unit
-    ) {
         loadExtractor(url, referer, subtitleCallback) { link ->
             CoroutineScope(Dispatchers.IO).launch {
                 callback.invoke(
