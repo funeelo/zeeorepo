@@ -21,13 +21,16 @@ import org.jsoup.nodes.Element
 data class AnilistData(val data: Media)
 
 @Serializable
-data class Media(val Media: MediaItem?)
+data class Media(val Page: Page)
+
+@Serializable
+data class Page(val media: List<MediaItem>)
 
 @Serializable
 data class MediaItem(val coverImage: CoverImage?)
 
 @Serializable
-data class CoverImage(val medium: String?)
+data class CoverImage(val extraLarge: String?, val large: String?)
 
 class Otakudesu : MainAPI() {
 
@@ -48,7 +51,7 @@ class Otakudesu : MainAPI() {
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        if (request.data == "jadwal-rilis") {
+        return if (request.data == "jadwal-rilis") {
             val document = app.get("$mainUrl/jadwal-rilis", timeout = 50L).document
             val home = mutableListOf<HomePageList>()
 
@@ -74,45 +77,55 @@ class Otakudesu : MainAPI() {
                 }
             }
 
-            return HomePageResponse(home)
+            HomePageResponse(home)
+        } else {
+            val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
+            val home = document.select("div.venz li").mapNotNull { it.toPageResult() }
+            newHomePageResponse(
+                list = HomePageList(
+                    name = request.name,
+                    list = home,
+                    isHorizontalImages = false
+                ),
+                hasNext = true
+            )
         }
-
-        val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
-        val home = document.select("div.venz li").mapNotNull { it.toPageResult() }
-        return newHomePageResponse(
-            list = HomePageList(
-                name = request.name,
-                list = home,
-                isHorizontalImages = false
-            ),
-            hasNext = true
-        )
     }
 
     private suspend fun fetchCoverFromAnilist(title: String): String? = withContext(Dispatchers.IO) {
         try {
             val client = OkHttpClient()
             val query = """
-                query (${'$'}search: String) {
-                  Media(search: ${'$'}search, type: ANIME) {
-                    coverImage {
-                      medium
-                    }
+            query(
+              ${'$'}page: Int = 1, 
+              ${'$'}search: String, 
+              ${'$'}sort: [MediaSort] = [POPULARITY_DESC, SCORE_DESC], 
+              ${'$'}type: MediaType
+            ) {
+              Page(page: ${'$'}page, perPage: 1) {
+                media(search: ${'$'}search, sort: ${'$'}sort, type: ${'$'}type) {
+                  coverImage {
+                    extraLarge
+                    large
                   }
                 }
+              }
+            }
             """.trimIndent()
 
             val variables = """
               {
-                "search": "$title"
+                "search": "$title",
+                "sort": ["SEARCH_MATCH"],
+                "type": "ANIME"
               }
             """.trimIndent()
 
             val jsonBody = """
-                {
-                  "query": "$query",
-                  "variables": $variables
-                }
+            {
+              "query": "$query",
+              "variables": $variables
+            }
             """.trimIndent()
 
             val mediaType = "application/json; charset=utf-8".toMediaType()
@@ -128,7 +141,10 @@ class Otakudesu : MainAPI() {
                 val responseBody = response.body?.string()
                 if (responseBody != null) {
                     val result = Json.decodeFromString<AnilistData>(responseBody)
-                    result.data.Media?.coverImage?.medium
+                    val media = result.data.Page.media
+                    if (media.isNotEmpty()) {
+                        media[0].coverImage?.extraLarge ?: media[0].coverImage?.large
+                    } else null
                 } else null
             } else null
         } catch (e: Exception) {
