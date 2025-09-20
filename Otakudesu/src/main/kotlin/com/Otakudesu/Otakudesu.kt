@@ -25,7 +25,7 @@ class Otakudesu : MainAPI() {
         TvType.OVA
     )
 
-    // Tambahkan "jadwal-rilis" di menu utama
+    
     override val mainPage = mainPageOf(
         "jadwal-rilis" to "Jadwal Rilis",
         "ongoing-anime" to "Terbaru"
