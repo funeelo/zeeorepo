@@ -13,9 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class Otakudesu : MainAPI() {
-    
     override var mainUrl = "https://otakudesu.best"
-    
     override var name = "Otakudesu"
     override var hasMainPage = true
     override var lang = "id"
@@ -26,15 +24,35 @@ class Otakudesu : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
-        "jadwal-rilis" to "jadwal rilis",
-        "complete-anime" to "complete",
-        "ongoing-anime" to "ongoing"
+        "jadwal-rilis" to "Jadwal Rilis",
+        "complete-anime" to "Complete",
+        "ongoing-anime" to "Ongoing"
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
+        
+        if (request.data == "jadwal-rilis") {
+            val doc = app.get("$mainUrl/jadwal-rilis", timeout = 50L).document
+            val home = mutableListOf<HomePageList>()
+
+            doc.select("div.kglist321").forEach { dayDiv ->
+                val dayName = dayDiv.selectFirst("h2")?.text()?.trim() ?: return@forEach
+                val animeList = dayDiv.select("ul li a").map { el ->
+                    val title = el.text().trim()
+                    val href = fixUrl(el.attr("href"))
+                    newAnimeSearchResponse(title, href, TvType.Anime)
+                }
+                if (animeList.isNotEmpty()) {
+                    home.add(HomePageList(dayName, animeList))
+                }
+            }
+
+            return HomePageResponse(home)
+        }
+
+        
         val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
         val home = document.select("div.venz li").mapNotNull { it.toPageResult() }
-
         return newHomePageResponse(
             list = HomePageList(
                 name = request.name,
@@ -45,70 +63,19 @@ class Otakudesu : MainAPI() {
         )
     }
 
-    private fun Element.toPageResult(): SearchResponse {
+    private fun Element.toPageResult(): SearchResponse? {
         val title = this.select("a div.thumbz h2.jdlflm").text()
         val href = fixUrl(this.select("a").attr("href"))
         val posterUrl = fixUrlNull(this.select("a div.thumbz img").attr("src").toString())
+        if (title.isBlank() || href.isBlank()) return null
         return newAnimeSearchResponse(title, href, TvType.Anime) {
             this.posterUrl = posterUrl
         }
     }
 
-    private fun Element.toSearchResult(): SearchResponse{
-        val title = this.select("h2 a").text().let { it.substring(0, listOf(it.indexOf("(Episode"), it.indexOf("Sub Indo"), it.indexOf("Subtitle"), it.indexOf("BD")).filter { idx -> idx >= 0 }.minOrNull() ?: it.length) }.trim()
-        val href = fixUrl(this.select("h2 a").attr("href"))
-        val posterUrl = fixUrlNull(this.select("img").attr("src").toString())
+    
+}
 
-        return newAnimeSearchResponse(title, href, TvType.Anime) {
-            this.posterUrl = posterUrl
-        }
-    }
-
-    override suspend fun search(query: String): List<SearchResponse> {
-            val document = app.get("${mainUrl}?s=$query&post_type=anime", timeout = 50L).document
-            val results =document.select("div.page ul.chivsrc li").mapNotNull { it.toSearchResult() }
-        return results
-    }
-
-    override suspend fun load (url: String): LoadResponse {
-        val document = app.get(url, timeout = 50L).document
-        val title =
-            document.selectFirst("div.infozingle p:nth-child(1) span")?.text()?.trim().toString().substringAfter(":")
-        val poster = document.select("div.fotoanime img").attr("src").toString()
-        val description = document.selectFirst("div.sinopc")?.text()?.trim()
-        val tvtag = if (url.contains("anime")) TvType.TvSeries else TvType.AnimeMovie
-        val genre = document.select("div.infozingle p:nth-child(11) span").select("a").map { it.text() }
-        
-        val episodeListDiv = document.select("div.episodelist")
-            .firstOrNull { div ->
-                div.selectFirst(".monktit")?.text()?.contains("Episode List", ignoreCase = true) == true
-            }
-
-        val episodes = episodeListDiv
-            ?.select("ul li")
-            ?.map {
-                val href = fixUrl(it.select("a").attr("href"))
-                val episode = it.select("a").text().substringAfter("Episode").substringBefore("Subtitle").substringBefore("(End)").trim().toIntOrNull()
-                newEpisode(href)
-                    {
-                        this.name = "Episode $episode"
-                        this.season = season
-                        this.episode = episode
-                    }
-        }
-        
-        return newAnimeLoadResponse(title, url, TvType.Anime) {
-            this.posterUrl = poster
-            this.plot = description
-            this.tags = genre
-            addEpisodes(DubStatus.Subbed, episodes)
-        }
-    } 
-
-    override suspend fun loadLinks(
-        data: String,
-        isCasting: Boolean,
-        subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val document = app.get(data).document
