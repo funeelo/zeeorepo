@@ -37,16 +37,19 @@ class Otakudesu : MainAPI() {
 
             document.select("div.kglist321").forEach { dayDiv ->
                 val dayName = dayDiv.selectFirst("h2")?.text()?.trim() ?: return@forEach
-                val animeList = dayDiv.select("ul li a").map { el ->
-                    val title = el.text().trim()
-                    val href = fixUrl(el.attr("href"))
-                    newAnimeSearchResponse(title, href, TvType.Anime)
-                }
+                val animeList = dayDiv.select("ul li").map { li ->
+                    val anchor = li.selectFirst("a") ?: return@map null
+                    val title = anchor.text().trim()
+                    val href = fixUrl(anchor.attr("href"))
+                    val poster = li.selectFirst("div.thumbz img")?.attr("src")
+                    newAnimeSearchResponse(title, href, TvType.Anime) {
+                        this.posterUrl = poster
+                    }
+                }.filterNotNull()
                 if (animeList.isNotEmpty()) {
                     home.add(HomePageList(dayName, animeList))
                 }
             }
-
             HomePageResponse(home)
         } else {
             val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
@@ -74,9 +77,9 @@ class Otakudesu : MainAPI() {
     private fun Element.toSearchResult(): SearchResponse {
         val title = this.select("h2 a").text().let {
             it.substring(0, listOf(
-                it.indexOf("(Episode"), 
-                it.indexOf("Sub Indo"), 
-                it.indexOf("Subtitle"), 
+                it.indexOf("(Episode"),
+                it.indexOf("Sub Indo"),
+                it.indexOf("Subtitle"),
                 it.indexOf("BD")
             ).filter { idx -> idx >= 0 }.minOrNull() ?: it.length)
         }.trim()
@@ -100,7 +103,7 @@ class Otakudesu : MainAPI() {
         val poster = document.select("div.fotoanime img").attr("src").toString()
         val description = document.selectFirst("div.sinopc")?.text()?.trim()
         val genre = document.select("div.infozingle p:nth-child(11) span").select("a").map { it.text() }
-        
+
         val episodeListDiv = document.select("div.episodelist")
             .firstOrNull { div ->
                 div.selectFirst(".monktit")?.text()?.contains("Episode List", ignoreCase = true) == true
