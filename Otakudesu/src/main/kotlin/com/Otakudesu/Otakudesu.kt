@@ -7,10 +7,27 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addImdbId
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.newExtractorLink
+import kotlinx.coroutines.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.jsoup.nodes.Element
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+
+@Serializable
+data class AnilistData(val data: Media)
+
+@Serializable
+data class Media(val Media: MediaItem?)
+
+@Serializable
+data class MediaItem(val coverImage: CoverImage?)
+
+@Serializable
+data class CoverImage(val medium: String?)
 
 class Otakudesu : MainAPI() {
 
@@ -37,19 +54,28 @@ class Otakudesu : MainAPI() {
 
             document.select("div.kglist321").forEach { dayDiv ->
                 val dayName = dayDiv.selectFirst("h2")?.text()?.trim() ?: return@forEach
-                val animeList = dayDiv.select("ul li").map { li ->
-                    val anchor = li.selectFirst("a") ?: return@map null
-                    val title = anchor.text().trim()
-                    val href = fixUrl(anchor.attr("href"))
-                    val poster = li.selectFirst("div.thumbz img")?.attr("src")
-                    newAnimeSearchResponse(title, href, TvType.Anime) {
-                        this.posterUrl = poster
-                    }
-                }.filterNotNull()
+
+                
+                val animeTitles = dayDiv.select("ul li a").map { it.text().trim() }
+
+                val animeListLinks = dayDiv.select("ul li a").map { fixUrl(it.attr("href")) }
+
+                val animeList = coroutineScope {
+                    animeTitles.mapIndexed { index, title ->
+                        async {
+                            val poster = fetchCoverFromAnilist(title)
+                            newAnimeSearchResponse(title, animeListLinks[index], TvType.Anime) {
+                                this.posterUrl = poster
+                            }
+                        }
+                    }.awaitAll()
+                }
+
                 if (animeList.isNotEmpty()) {
                     home.add(HomePageList(dayName, animeList))
                 }
             }
+
             HomePageResponse(home)
         } else {
             val document = app.get("$mainUrl/${request.data}/page/$page", timeout = 50L).document
@@ -62,6 +88,54 @@ class Otakudesu : MainAPI() {
                 ),
                 hasNext = true
             )
+        }
+    }
+
+    private suspend fun fetchCoverFromAnilist(title: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val client = OkHttpClient()
+            val query = """
+                query (${'$'}search: String) {
+                  Media(search: ${'$'}search, type: ANIME) {
+                    coverImage {
+                      medium
+                    }
+                  }
+                }
+            """.trimIndent()
+
+            val variables = """
+              {
+                "search": "$title"
+              }
+            """.trimIndent()
+
+            val jsonBody = """
+                {
+                  "query": "$query",
+                  "variables": $variables
+                }
+            """.trimIndent()
+
+            val mediaType = "application/json; charset=utf-8".toMediaType()
+            val body = jsonBody.toRequestBody(mediaType)
+
+            val request = Request.Builder()
+                .url("https://graphql.anilist.co")
+                .post(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                val responseBody = response.body?.string()
+                if (responseBody != null) {
+                    val result = Json.decodeFromString<AnilistData>(responseBody)
+                    result.data.Media?.coverImage?.medium
+                } else null
+            } else null
+        } catch (e: Exception) {
+            Log.e("Anilist fetch error", e.toString())
+            null
         }
     }
 
