@@ -2,35 +2,13 @@ package com.Otakudesu
 
 import com.lagradost.api.Log
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
-import com.lagradost.cloudstream3.LoadResponse.Companion.addImdbId
-import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
+import com.lagradost.cloudstream3.LoadResponse.Companion.addEpisodes
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.newExtractorLink
-import kotlinx.coroutines.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jsoup.nodes.Element
-
-@Serializable
-data class AnilistData(val data: Media)
-
-@Serializable
-data class Media(val Page: Page)
-
-@Serializable
-data class Page(val media: List<MediaItem>)
-
-@Serializable
-data class MediaItem(val coverImage: CoverImage?)
-
-@Serializable
-data class CoverImage(val extraLarge: String?, val large: String?)
 
 class Otakudesu : MainAPI() {
 
@@ -57,21 +35,18 @@ class Otakudesu : MainAPI() {
 
             document.select("div.kglist321").forEach { dayDiv ->
                 val dayName = dayDiv.selectFirst("h2")?.text()?.trim() ?: return@forEach
+                val animeList = dayDiv.select("ul li a").map { el ->
+                    val title = el.text().trim()
+                    val href = fixUrl(el.attr("href"))
 
-                val animeTitles = dayDiv.select("ul li a").map { it.text().trim() }
-                val animeListLinks = dayDiv.select("ul li a").map { fixUrl(it.attr("href")) }
+                    
+                    val detailDoc = app.get(href, timeout = 50L).document
+                    val poster = fixUrlNull(detailDoc.selectFirst("div.fotoanime img")?.attr("src"))
 
-                val animeList = coroutineScope {
-                    animeTitles.mapIndexed { index, title ->
-                        async {
-                            val poster = fetchCoverFromAnilist(title)
-                            newAnimeSearchResponse(title, animeListLinks[index], TvType.Anime) {
-                                this.posterUrl = poster
-                            }
-                        }
-                    }.awaitAll()
+                    newAnimeSearchResponse(title, href, TvType.Anime) {
+                        this.posterUrl = poster
+                    }
                 }
-
                 if (animeList.isNotEmpty()) {
                     home.add(HomePageList(dayName, animeList))
                 }
@@ -89,67 +64,6 @@ class Otakudesu : MainAPI() {
                 ),
                 hasNext = true
             )
-        }
-    }
-
-    private suspend fun fetchCoverFromAnilist(title: String): String? = withContext(Dispatchers.IO) {
-        try {
-            val client = OkHttpClient()
-            val query = """
-            query(
-              ${'$'}page: Int = 1, 
-              ${'$'}search: String, 
-              ${'$'}sort: [MediaSort] = [POPULARITY_DESC, SCORE_DESC], 
-              ${'$'}type: MediaType
-            ) {
-              Page(page: ${'$'}page, perPage: 1) {
-                media(search: ${'$'}search, sort: ${'$'}sort, type: ${'$'}type) {
-                  coverImage {
-                    extraLarge
-                    large
-                  }
-                }
-              }
-            }
-            """.trimIndent()
-
-            val variables = """
-              {
-                "search": "$title",
-                "sort": ["SEARCH_MATCH"],
-                "type": "ANIME"
-              }
-            """.trimIndent()
-
-            val jsonBody = """
-            {
-              "query": "$query",
-              "variables": $variables
-            }
-            """.trimIndent()
-
-            val mediaType = "application/json; charset=utf-8".toMediaType()
-            val body = jsonBody.toRequestBody(mediaType)
-
-            val request = Request.Builder()
-                .url("https://graphql.anilist.co")
-                .post(body)
-                .build()
-
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string()
-                if (responseBody != null) {
-                    val result = Json.decodeFromString<AnilistData>(responseBody)
-                    val media = result.data.Page.media
-                    if (media.isNotEmpty()) {
-                        media[0].coverImage?.extraLarge ?: media[0].coverImage?.large
-                    } else null
-                } else null
-            } else null
-        } catch (e: Exception) {
-            Log.e("Anilist fetch error", e.toString())
-            null
         }
     }
 
@@ -187,10 +101,12 @@ class Otakudesu : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val document = app.get(url, timeout = 50L).document
-        val title = document.selectFirst("div.infozingle p:nth-child(1) span")?.text()?.trim().toString().substringAfter(":")
+        val title = document.selectFirst("div.infozingle p:nth-child(1) span")?.text()?.trim()
+            .toString().substringAfter(":")
         val poster = document.select("div.fotoanime img").attr("src").toString()
         val description = document.selectFirst("div.sinopc")?.text()?.trim()
-        val genre = document.select("div.infozingle p:nth-child(11) span").select("a").map { it.text() }
+        val genre =
+            document.select("div.infozingle p:nth-child(11) span").select("a").map { it.text() }
 
         val episodeListDiv = document.select("div.episodelist")
             .firstOrNull { div ->
@@ -199,7 +115,8 @@ class Otakudesu : MainAPI() {
 
         val episodes = episodeListDiv?.select("ul li")?.map {
             val href = fixUrl(it.select("a").attr("href"))
-            val episode = it.select("a").text().substringAfter("Episode").substringBefore("Subtitle").substringBefore("(End)").trim().toIntOrNull()
+            val episode = it.select("a").text().substringAfter("Episode")
+                .substringBefore("Subtitle").substringBefore("(End)").trim().toIntOrNull()
             newEpisode(href).apply {
                 this.name = "Episode $episode"
                 this.season = season
