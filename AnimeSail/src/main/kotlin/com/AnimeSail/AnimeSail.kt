@@ -7,7 +7,6 @@ import com.lagradost.nicehttp.NiceResponse
 import org.jsoup.nodes.Element
 
 class AnimeSail : MainAPI() {
-    // kalau bisa pakai domain aslinya, jangan IP (lebih stabil)
     override var mainUrl = "https://animesail.com"
 
     override var name = "AnimeSail"
