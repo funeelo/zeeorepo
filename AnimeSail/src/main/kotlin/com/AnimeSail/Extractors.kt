@@ -149,7 +149,7 @@ class Mp4Upload : ExtractorApi() {
     ) {
         val doc = app.get(
             url,
-            referer = referer ?: mainUrl,
+            referer = mainUrl,
             headers = mapOf(
                 "User-Agent" to ua
             )
@@ -164,7 +164,12 @@ class Mp4Upload : ExtractorApi() {
                 name,
                 httpsify(videoUrl)
             ) {
-                this.referer = url
+                this.referer = mainUrl
+                this.headers = mapOf(
+                    "User-Agent" to ua,
+                    "Accept" to "*/*",
+                    "Range" to "bytes=0-"
+                )
                 this.quality = Qualities.Unknown.value
             }
         )
