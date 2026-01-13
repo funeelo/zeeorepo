@@ -7,7 +7,7 @@ import com.lagradost.nicehttp.NiceResponse
 import org.jsoup.nodes.Element
 
 class AnimeSail : MainAPI() {
-    override var mainUrl = "https://animesail.com"
+    override var mainUrl = "https://154.26.137.28"
 
     override var name = "AnimeSail"
     override var hasMainPage = true
