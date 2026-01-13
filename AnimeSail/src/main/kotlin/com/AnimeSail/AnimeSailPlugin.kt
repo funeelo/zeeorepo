@@ -7,8 +7,6 @@ import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
 class AnimeSailPlugin: BasePlugin() {
     override fun load() {
         registerMainAPI(AnimeSail())
-        registerExtractorAPI(Gofile())
-        registerExtractorAPI(Acefile())
-        registerExtractorAPI(Krakenfiles())
+        registerExtractorAPI(Mp4Upload())
     }
 }
