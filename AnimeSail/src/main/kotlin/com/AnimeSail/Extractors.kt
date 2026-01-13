@@ -31,12 +31,12 @@ class Gofile : ExtractorApi() {
         } ?: return
 
         app.get("$mainApi/getContent?contentId=$id&token=$token&wt=$websiteToken")
-            .parsedSafe<Source>()?.data?.contents?.forEach {
+            .parsedSafe<Source>()?.data?.contents?.forEach { (_, value) ->
                 callback.invoke(
                     newExtractorLink(
                         name,
                         name,
-                        it.value["link"] ?: return@forEach
+                        value["link"] ?: return@forEach
                     ) {
                         this.headers = mapOf(
                             "Cookie" to "accountToken=$token"
@@ -47,16 +47,16 @@ class Gofile : ExtractorApi() {
     }
 
     data class Account(
-        @JsonProperty("data") val data: HashMap<String, String>? = null,
+        @JsonProperty("data") val data: HashMap<String, String>? = null
     )
 
     data class Data(
         @JsonProperty("contents")
-        val contents: HashMap<String, HashMap<String, String>>? = null,
+        val contents: HashMap<String, HashMap<String, String>>? = null
     )
 
     data class Source(
-        @JsonProperty("data") val data: Data? = null,
+        @JsonProperty("data") val data: Data? = null
     )
 }
 
@@ -98,7 +98,7 @@ class Acefile : ExtractorApi() {
     }
 
     data class Source(
-        val data: String? = null,
+        val data: String? = null
     )
 }
 
@@ -138,6 +138,9 @@ class Mp4Upload : ExtractorApi() {
     override val mainUrl = "https://www.mp4upload.com"
     override val requiresReferer = true
 
+    private val ua =
+        "Mozilla/5.0 (Android 13; Mobile; rv:120.0) Gecko/120.0 Firefox/120.0"
+
     override suspend fun getUrl(
         url: String,
         referer: String?,
@@ -148,7 +151,7 @@ class Mp4Upload : ExtractorApi() {
             url,
             referer = referer ?: mainUrl,
             headers = mapOf(
-                "User-Agent" to USER_AGENT
+                "User-Agent" to ua
             )
         ).document
 
